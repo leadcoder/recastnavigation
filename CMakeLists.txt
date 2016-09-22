@@ -10,6 +10,6 @@ add_subdirectory(DetourCrowd)
 add_subdirectory(DetourTileCache)
 add_subdirectory(DebugUtils)
 add_subdirectory(Utils)
-add_subdirectory(RecastDemo)
+#add_subdirectory(RecastDemo)
 
 mkcmakeconfig(RecastNavigation 1.5.1)
