@@ -202,6 +202,7 @@ unsigned char* TiledNavigationMeshBuilder::BuildTileMesh(InputGeom* geom, const 
 	cfg.height = cfg.tileSize + cfg.borderSize*2;
 	cfg.detailSampleDist = m_DetailSampleDist < 0.9f ? 0 : m_CellSize * m_DetailSampleDist;
 	cfg.detailSampleMaxError = m_CellHeight * m_DetailSampleMaxError;
+	cfg.checkerSize = (int)m_CheckerSize;
 
 	rcVcopy(cfg.bmin, bmin);
 	rcVcopy(cfg.bmax, bmax);
@@ -321,7 +322,7 @@ unsigned char* TiledNavigationMeshBuilder::BuildTileMesh(InputGeom* geom, const 
 
 	//Hack to tesselate mesh!
 	static unsigned char magic_num = 128;
-	int checker_size = cfg.maxEdgeLen;
+	int checker_size = cfg.checkerSize;
 	if (checker_size > 0)
 	{
 		for (int y = 0; y < chf->height; ++y) {

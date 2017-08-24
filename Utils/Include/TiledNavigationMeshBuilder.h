@@ -33,6 +33,7 @@ public:
 	float m_DetailSampleMaxError;
 	int m_TileSize;
 	bool m_MonotonePartitioning;
+	int m_CheckerSize;
 };
 
 
