@@ -260,6 +260,9 @@ struct rcConfig
 	/// The maximum distance the detail mesh surface should deviate from heightfield
 	/// data. (For height detail only.) [Limit: >=0] [Units: wu] 
 	float detailSampleMaxError;
+
+	/// Subdivide the tiles to create a finer mesh [Units: vx]
+	int checkerSize;
 };
 
 /// Defines the number of bits allocated to rcSpan::smin and rcSpan::smax.
