@@ -320,8 +320,12 @@ unsigned char* TiledNavigationMeshBuilder::BuildTileMesh(InputGeom* geom, const 
 		return 0;
 	}
 
-	//Hack to tesselate mesh!
-	static unsigned char magic_num = 128;
+	//----------checker hack start ----------
+	//Tessellate mesh navigation mesh by modifying cell material ID's in a checker pattern.
+	//The final polygons will be clipped in a grid defined by cfg.checkerSize much like how tiles clip the 
+	//navigation mesh but this method allow much more fine grain clipping without reaching the max-tiles limit.
+	//Material ID's will later be restored to expected values, see next "checker hack"- block below.
+	static unsigned char magic_checker_num = 128;
 	int checker_size = cfg.checkerSize;
 	if (checker_size > 0)
 	{
@@ -331,13 +335,13 @@ unsigned char* TiledNavigationMeshBuilder::BuildTileMesh(InputGeom* geom, const 
 				//for (int i = (int)c.index, ni = (int)(c.index+c.count); i < ni; ++i) {
 				for (int i = (int)c.index, ni = (int)(c.index + c.count); i < ni; ++i) {
 					if (chf->areas[i] != RC_NULL_AREA && (((x / checker_size) ^ (y / checker_size)) & 1))
-						chf->areas[i] = chf->areas[i] + magic_num;
+						chf->areas[i] = chf->areas[i] + magic_checker_num;
 					//chf->areas[i] = checker(x,y,checker_size);
 				}
 			}
 		}
 	}
-
+	//----------checker hack end ----------
 
 	// (Optional) Mark areas.
 	const ConvexVolume* vols = geom->getConvexVolumes();
@@ -409,6 +413,26 @@ unsigned char* TiledNavigationMeshBuilder::BuildTileMesh(InputGeom* geom, const 
 		m_Ctx->log(RC_LOG_ERROR, "buildNavigation: Out of memory 'dmesh'.");
 		return 0;
 	}
+
+
+	//----------checker hack start ----------
+	//Restore material ID's to expected values
+	for (int i = 0; i < pmesh->npolys; ++i)
+	{
+		if (pmesh->areas[i] > magic_checker_num - 1)
+			pmesh->areas[i] = pmesh->areas[i] - magic_checker_num;
+	}
+
+	for (int y = 0; y < chf->height; ++y) {
+		for (int x = 0; x < chf->width; ++x) {
+			const rcCompactCell& c = chf->cells[x + y*chf->width];
+			for (int i = (int)c.index, ni = (int)(c.index + c.count); i < ni; ++i) {
+				if (chf->areas[i] > magic_checker_num - 1)
+					chf->areas[i] = chf->areas[i] - magic_checker_num;
+			}
+		}
+	}
+	//----------checker hack end ----------
 
 	if (!rcBuildPolyMeshDetail(m_Ctx, *pmesh, *chf,
 		cfg.detailSampleDist, cfg.detailSampleMaxError,
