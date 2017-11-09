@@ -1,4 +1,4 @@
-set(Utils_LIBNAME Utils)
+set(Utils_LIBNAME RecastUtils)
 set(Utils_MAJOR_VERSION 1)
 set(Utils_MINOR_VERSION 5)
 set(Utils_PATCH_VERSION 1)
