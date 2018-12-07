@@ -1807,7 +1807,7 @@ dtStatus dtNavMeshQuery::appendPortals(const int startIdx, const int endIdx, con
 dtStatus dtNavMeshQuery::findStraightPath(const float* startPos, const float* endPos,
 										  const dtPolyRef* path, const int pathSize,
 										  float* straightPath, unsigned char* straightPathFlags, dtPolyRef* straightPathRefs,
-										  int* straightPathCount, const int maxStraightPath, const int options) const
+										  int* straightPathCount, const int maxStraightPath, const int options, float wallOffset) const
 {
 	dtAssert(m_nav);
 	
@@ -1863,7 +1863,7 @@ dtStatus dtNavMeshQuery::findStraightPath(const float* startPos, const float* en
 				unsigned char fromType; // fromType is ignored.
 
 				// Next portal.
-				if (dtStatusFailed(getPortalPoints(path[i], path[i+1], left, right, fromType, toType)))
+				if (dtStatusFailed(getContractedPortalPoints(path[i], path[i+1], left, right, fromType, toType, wallOffset)))
 				{
 					// Failed to get portal points, in practice this means that path[i+1] is invalid polygon.
 					// Clamp the end point to path[i], and return the path so far.
@@ -2266,6 +2266,39 @@ dtStatus dtNavMeshQuery::getPortalPoints(dtPolyRef from, dtPolyRef to, float* le
 	toType = toPoly->getType();
 		
 	return getPortalPoints(from, fromPoly, fromTile, to, toPoly, toTile, left, right);
+}
+
+
+dtStatus dtNavMeshQuery::getContractedPortalPoints(dtPolyRef from, dtPolyRef to, float* left, float* right,
+	unsigned char& fromType, unsigned char& toType, float contractDist) const
+{
+	dtAssert(m_nav);
+
+	const dtMeshTile* fromTile = 0;
+	const dtPoly* fromPoly = 0;
+	if (dtStatusFailed(m_nav->getTileAndPolyByRef(from, &fromTile, &fromPoly)))
+		return DT_FAILURE | DT_INVALID_PARAM;
+	fromType = fromPoly->getType();
+
+	const dtMeshTile* toTile = 0;
+	const dtPoly* toPoly = 0;
+	if (dtStatusFailed(m_nav->getTileAndPolyByRef(to, &toTile, &toPoly)))
+		return DT_FAILURE | DT_INVALID_PARAM;
+	toType = toPoly->getType();
+
+	dtStatus status = getPortalPoints(from, fromPoly, fromTile, to, toPoly, toTile, left, right);
+
+	if (!dtStatusFailed(status) && (contractDist > 0) && (fromTile == toTile))
+	{
+		//shrink portal to respect agent radius
+		const float portal_width = dtVdist(left, right);
+		float ft = (portal_width > contractDist *2) ? contractDist / portal_width : 0.499;
+		float old_left[3];
+		dtVcopy(old_left, left);
+		dtVlerp(left, left, right, ft);
+		dtVlerp(right, right, old_left, ft);
+	}
+	return status;
 }
 
 // Returns portal points between two polygons.

@@ -209,7 +209,7 @@ public:
 	dtStatus findStraightPath(const float* startPos, const float* endPos,
 							  const dtPolyRef* path, const int pathSize,
 							  float* straightPath, unsigned char* straightPathFlags, dtPolyRef* straightPathRefs,
-							  int* straightPathCount, const int maxStraightPath, const int options = 0) const;
+							  int* straightPathCount, const int maxStraightPath, const int options = 0, float wallOffset = 0) const;
 
 	///@}
 	/// @name Sliced Pathfinding Functions
@@ -505,6 +505,11 @@ private:
 	/// Returns portal points between two polygons.
 	dtStatus getPortalPoints(dtPolyRef from, dtPolyRef to, float* left, float* right,
 							 unsigned char& fromType, unsigned char& toType) const;
+
+	/// Returns contracted portal points between two polygons.
+	dtStatus getContractedPortalPoints(dtPolyRef from, dtPolyRef to, float* left, float* right,
+		unsigned char& fromType, unsigned char& toType, float contractDist) const;
+
 	dtStatus getPortalPoints(dtPolyRef from, const dtPoly* fromPoly, const dtMeshTile* fromTile,
 							 dtPolyRef to, const dtPoly* toPoly, const dtMeshTile* toTile,
 							 float* left, float* right) const;
